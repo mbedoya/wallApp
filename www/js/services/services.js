@@ -62,14 +62,7 @@ var servicesModule = angular.module('wall.services', [])
                 return "hace " + result + " días";
             },
             getCurrentDate: function () {
-                var fecha = new Date();
-
-                var dateStr = self.padStr(fecha.getFullYear()) + "-" +
-                    self.padStr(1 + fecha.getMonth()) + "-" +
-                    self.padStr(fecha.getDate()) + " " +
-                    self.padStr(fecha.getHours()) + ":" +
-                    self.padStr(fecha.getMinutes()) + ":" +
-                    self.padStr(fecha.getSeconds());
+                var dateStr = new Date().toISOString();
 
                 return dateStr;
             }

@@ -1,10 +1,38 @@
 <ion-view view-title="Wall">
-  <ion-content>
-    <ion-list>
-      Wall-Home
-      <ion-item ng-repeat="playlist in playlists" href="#/app/playlists/{{playlist.id}}">
-        {{playlist.title}}
-      </ion-item>
-    </ion-list>
-  </ion-content>
+	<ion-content>
+
+		<div class="item">
+			<button class="button button-positive" ng-click="addPost()">
+      Add Post
+    </button>
+
+			<button class="button button-assertive" ng-click="setup()">
+      Setup
+    </button>
+		</div>
+
+		<div class="card" ng-repeat="post in posts">
+			<div class="item item-divider">
+				{{ post.name }}
+			</div>
+			<div class="item item-text-wrap">
+				{{ post.post }}
+			</div>
+		</div>
+
+		<div class="item">
+			Old Posts ({{numOldPosts}})
+		</div>
+
+		<div class="card" ng-repeat="post in oldPosts">
+			<div class="item item-divider">
+				{{ post.name }}
+			</div>
+			<div class="item item-text-wrap">
+				{{ post.post }}
+			</div>
+		</div>
+
+
+	</ion-content>
 </ion-view>
