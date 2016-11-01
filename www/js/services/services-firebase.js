@@ -27,6 +27,7 @@ servicesModule
 
                 objectRef.set(dataObject, function (error) {
                     if (fx) {
+                        dataObject[keyPropertyName] = newObjectKey;
                         fx(newObjectKey, dataObject, error);
                     }
                 });
@@ -54,6 +55,7 @@ servicesModule
 
                 objectRef.setWithPriority(dataObject, 0 - Date.now(), function (error) {
                     if (fx) {
+                        dataObject[keyPropertyName] = newObjectKey;
                         fx(newObjectKey, dataObject, error);
                     }
                 });
@@ -67,7 +69,9 @@ servicesModule
                 //    uid: Security.getUserID(),
                 //};
 
-                dataObject[timePropertyName] = Utility.getCurrentDate();
+                if(!dataObject[timePropertyName]){
+                    dataObject[timePropertyName] = Utility.getCurrentDate();
+                }
                 //dataObject["key"] = newObjectKey;
 
                 //console.log(dataObject);
@@ -76,10 +80,12 @@ servicesModule
                     objectName = "/" + objectName;
                 }
 
+                console.log(objectName);
+
                 //Save to Database
                 firebase.database().ref(objectName).set(dataObject, function (error) {
                     if (fx) {
-                        fx(error);
+                        fx( error);
                     }
                 });
             },
@@ -102,6 +108,15 @@ servicesModule
                 var recentPostsRef = firebase.database().ref(object);
                 recentPostsRef.once("value", fx, fxError);
             },
+            getObjectProperty: function (object, fx, fxError) {
+
+                console.log(object);
+
+                var recentPostsRef = firebase.database().ref(object);
+                recentPostsRef.once("value", function(snapshot){
+                    fx(snapshot.val());
+                }, fxError);
+            },
             getObjectChildrenByCount: function (object, count, fx, fxError) {
 
                 console.log(object);
@@ -118,6 +133,19 @@ servicesModule
                         arrayResult.push(object);
                     });
                     console.log(new Date());
+                    fx(arrayResult);
+                }, fxError);
+            },getObjectChildren: function (object, fx, fxError) {
+                var recentPostsRef = firebase.database().ref(object);
+                recentPostsRef.once("value", function (snapshot) {
+                    var arrayResult = [];
+                    snapshot.forEach(function (childSnapshot) {
+                        var key = childSnapshot.key;
+                        var object = childSnapshot.val();
+                        object[keyPropertyName] = key;
+
+                        arrayResult.push(object);
+                    });
                     fx(arrayResult);
                 }, fxError);
             }

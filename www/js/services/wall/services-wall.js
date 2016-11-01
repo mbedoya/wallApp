@@ -1,9 +1,12 @@
 servicesModule
-    .factory('Wall', function ($rootScope, Firebase) {
+    .factory('Wall', function ($rootScope, Firebase, Utility) {
 
         var newPosts = 'posts-new';
         var oldPosts = 'posts-old';
+        var updatedProperty = "editadoEl";
         var numberOfPostInitialLoad = 4;
+
+        var postCommentsPath = newPosts + "/{key}/comentario";
 
         return {
             setup: function () {
@@ -14,6 +17,14 @@ servicesModule
 
                     //console.log(data);
                     console.log(childrenCount);
+
+                    /*    
+                    if(childrenCount == 1){
+                        Firebase.saveObjectWithoutKey("/", {deleted: true}, function (error) {
+
+                        });
+                    }
+                    */
 
                     if (childrenCount == 0) {
                         Firebase.saveObjectWithoutKey("/" + newPosts, {}, function (error) {
@@ -48,7 +59,8 @@ servicesModule
                                         image: ""
                                     };
 
-                                    setTimeout(function(){
+                                    setTimeout(function () {
+                                        post.userName = "Chili " + Math.random();
                                         Firebase.saveObjectWithPriority("/" + oldPosts, post);
                                     }, 50);
                                 }
@@ -100,6 +112,98 @@ servicesModule
                         fx(true, object, key);
                     }
                 });
+            },
+            updatePost: function (post, fx) {
+
+                console.log(post);
+
+                //Necesita ser eliminada porque Firebase no la acepta, Angular la adiciona
+                var comments = post["comments"];
+
+                    delete post["$$hashKey"];
+                    delete post["showComments"];
+                    delete post["comments"];
+
+                post[updatedProperty] = Utility.getCurrentDate();
+
+                //Update post
+                Firebase.saveObjectWithoutKey(newPosts + "/" + post.clave, post, function (key, object, error) {
+
+                    //set comments back
+                    post["comments"] = comments;
+
+                    if (error) {
+                        console.log(error);
+                        fx(false);
+                    } else {
+                        fx(true, post);
+                    }
+                });
+            },
+            getPostComments: function (post, fx) {
+                Firebase.getObjectChildren(postCommentsPath.replace("{key}", post.clave), function (array) {
+                    fx(true, array);
+                }, function () {
+                    fx(false);
+                });
+            },
+            commentPost: function (post, comment, fx) {
+                console.log(post);
+
+                //Get Comments count
+                Firebase.getObjectProperty("/" + newPosts + "/" + post.clave + "/numComments", function (object) {
+
+                    post.numComments = object;
+
+                    //Increase count
+                    if (!post.numComments) {
+                        post.numComments = 1;
+                    } else {
+                        post.numComments++;
+                    }
+
+                    var comments = post["comments"];
+
+                    delete post["$$hashKey"];
+                    delete post["showComments"];
+                    delete post["comments"];
+
+                    console.log("about to update comment count" + post.clave);
+
+                    //Update post
+                    Firebase.saveObjectWithoutKey(newPosts + "/" + post.clave, post, function (key, object, error) {
+
+                        //set comments back
+                        post["comments"] = comments;
+
+                        if (error) {
+                            console.log(error);
+                            //fx(false);
+                        } else {
+                            //fx(true, post);
+
+                            console.log("about to add comment " + comment.post);
+
+                            
+
+                            //Add comment
+                            Firebase.saveObject(postCommentsPath.replace("{key}", post.clave), comment, function (key, object, error) {
+                                if (error) {
+                                    console.log(error);
+                                    fx(false);
+                                } else {
+                                    fx(true, object, key, post);
+                                }
+                            });
+                        }
+
+                    });
+
+                }, function (error) {
+                    console.log(error);
+                });
+
+
             }
         }
     });

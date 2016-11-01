@@ -1,1 +1,48 @@
 /* Empty. Add your own CSS if you like */
+
+textarea{
+    border: solid 1px #CCC;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 3px;
+    width: 100%;
+    font-size: 15px;
+}
+
+.button{
+    margin-right: 5px;
+}
+
+.header{
+    font-weight: normal;
+    font-size: 13px;
+}
+
+.footer{
+    font-weight: normal;
+    font-size: 13px;
+}
+
+.footer img{
+    max-width: 16px;
+    max-height: 16px;
+}
+
+.key{
+    font-size: 9px;
+    margin-top: 5px;
+    color: #0C000C;
+}
+
+.comment{
+    background: inherit;
+    font-size: inherit;
+}
+
+.item-input-inset .item-input-wrapper input {
+    background: #FFF;
+}
+
+.list {
+    margin-bottom: 0px;
+}
