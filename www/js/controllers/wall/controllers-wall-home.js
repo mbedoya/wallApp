@@ -103,38 +103,96 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
     });
   }
 
-  $scope.commentPost = function (post, index) {
-    Wall.commentPost(post, { post: $scope.newComment.message }, function (success, object, key, postEdited) {
-      console.log("comment " + key);
-      console.log(postEdited);
-      $scope.posts[index].numComments = postEdited.numComments;
-      $scope.posts[index].showComments = true;
+  $scope.editComment = function (comment, index, postIndex) {
+    $scope.commentInEdition = { object: comment, index: index, postIndex: postIndex };
+    $scope.newComment = { message: comment.post };
+  }
+
+  $scope.deleteComment = function () {
+
+    Wall.deleteComment($scope.posts[$scope.commentInEdition.postIndex], $scope.commentInEdition.object, function (success) {
+      $scope.posts[$scope.commentInEdition.postIndex].comments.splice($scope.commentInEdition.index, 1);
+      $scope.commentInEdition = null;
       $scope.newComment = { message: '' };
-
-      if (!post.comments) {
-        post.comments = [];
-      }
-
-      post.comments.push(object);
-
       $scope.$apply();
     });
   }
 
+  $scope.commentPost = function (post, index) {
+
+    //Add Comment?
+    if (!$scope.commentInEdition) {
+      Wall.commentPost(post, { post: $scope.newComment.message }, function (success, object, key, postEdited) {
+        console.log("comment " + key);
+        console.log(postEdited);
+        $scope.posts[index].numComments = postEdited.numComments;
+        $scope.posts[index].showComments = true;
+        $scope.newComment = { message: '' };
+
+        if (!post.comments) {
+          post.comments = [];
+        }
+
+        post.comments.push(object);
+        $scope.$apply();
+
+      });
+
+    } else {
+
+      $scope.commentInEdition.object.post = $scope.newComment.message;
+
+      var updatedProperty = "editadoEl";
+
+      Wall.updateComment($scope.posts[$scope.commentInEdition.postIndex], $scope.commentInEdition.object, function (success, object) {
+
+        console.log(object);
+        $scope.commentInEdition.object[updatedProperty] = object[updatedProperty];
+        $scope.posts[$scope.commentInEdition.postIndex].comments[$scope.commentInEdition.index] = $scope.commentInEdition.object;
+
+        $scope.commentInEdition = null;
+        $scope.newComment = { message: '' };
+        $scope.$apply();
+      });
+
+    }
+
+
+  }
+
   $scope.commentsCount = function (index) {
-    if ($scope.posts[index].numComments) {
+    if ($scope.posts[index].numComments && $scope.posts[index].numComments > 0) {
       return "(" + $scope.posts[index].numComments + ")"
     } else {
       return "";
     }
   }
 
+  $scope.showComments = function(post){
+    return post.showComments;
+  }
+
   $scope.toggleComments = function (index) {
+
+    //Hide all comments sections
+    for (var i = 0; i < $scope.posts[i].length; index++) {
+      if (index != i) {
+        $scope.posts[i].showComments = false;
+      }
+    }
+
+    //Change selected
     $scope.posts[index].showComments = !$scope.posts[index].showComments;
 
+    //if posts need to be shown get from database 
     if ($scope.posts[index].showComments) {
       Wall.getPostComments($scope.posts[index], function (success, array) {
         $scope.posts[index].comments = array;
+        if(array && array.length > 0){
+          $scope.posts[index].numComments = array.length;
+        }else{
+          $scope.posts[index].numComments = 0;
+        }
         $scope.$apply();
       });
     }

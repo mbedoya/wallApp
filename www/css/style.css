@@ -21,6 +21,15 @@ textarea{
 .footer{
     font-weight: normal;
     font-size: 13px;
+    vertical-align: middle;
+}
+
+.small-footer{
+    font-weight: normal;
+    font-size: 12px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    text-decoration: underline; 
 }
 
 .footer img{

@@ -161,6 +161,34 @@ servicesModule
                     fx(false);
                 });
             },
+            deleteComment: function (post, comment, fx) {
+
+                //Delete Comments
+                Firebase.deleteObject(postCommentsPath.replace("{key}", post.clave) + "/" + comment.clave, function (error) {
+                    if (error) {
+                        console.log(error);
+                        fx(false);
+                    } else {
+                        fx(true);
+                    }
+                });
+            },
+            updateComment: function (post, comment, fx) {
+
+                delete comment["$$hashKey"];
+                comment[updatedProperty] = Utility.getCurrentDate();
+
+                //Update comment
+                Firebase.saveObjectWithoutKey(postCommentsPath.replace("{key}", post.clave) + "/" + comment.clave, comment, function (key, object, error) {
+
+                    if (error) {
+                        console.log(error);
+                        fx(false);
+                    } else {
+                        fx(true, comment);
+                    }
+                });
+            },
             commentPost: function (post, comment, fx) {
                 console.log(post);
 
