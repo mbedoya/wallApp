@@ -14,6 +14,9 @@ servicesModule
         return {
             setup: function () {
 
+                localStorage.usuario = "mbedoya";
+                localStorage.nombre = "Mauricio Bedoya";
+
                 Firebase.getObject("/", function (snapshot) {
                     //var data = snapshot.val();
                     var childrenCount = snapshot.numChildren();
@@ -166,6 +169,14 @@ servicesModule
                     fx(false);
                 });
             },
+            //El postIndex se requiere para hacer la carga inicial y saber a que post corresponde
+            getPostLikes: function (post, postIndex, fx) {
+                Firebase.getObjectChildren(postLikesPath.replace("{key}", post.clave), function (array) {
+                    fx(true, array, postIndex);
+                }, function () {
+                    fx(false);
+                });
+            },
             deleteComment: function (post, comment, fx) {
 
                 //Get Comments count
@@ -301,8 +312,7 @@ servicesModule
                 //Get Likes count
                 Firebase.getObjectProperty("/" + newPosts + "/" + post.clave + "/numLikes", function (object) {
 
-                    post.numComments = object;
-
+                    post.numLikes = object;
 
                     //Check if like done already
                     Firebase.queryObject(postLikesPath.replace("{key}", post.clave), "userName", Security.getUserName(), function (error, object) {
@@ -311,6 +321,7 @@ servicesModule
                             console.log(error);
                         } else {
 
+                            console.log("Like Found!");
                             console.log(object);
 
                             //Like found?
@@ -323,25 +334,39 @@ servicesModule
                                     post.numLikes = 0;
                                 }
 
-                                console.log("about to update comment count" + post.clave);
+                                //Update post
+                                Firebase.saveProperty(newPosts + "/" + post.clave + "/numLikes", post.numLikes, function (error) {
 
-                                //Delete Like
-                                Firebase.deleteObject(postLikesPath.replace("{key}", post.clave) + "/" + object.clave, function (error) {
                                     if (error) {
                                         console.log(error);
-                                        fx(false);
+                                        //fx(false);
                                     } else {
-                                        fx(true);
+
+                                        var objectToDelete = postLikesPath.replace("{key}", post.clave) + "/" + object.clave;
+                                        console.log("Object to delete: " + objectToDelete);
+
+                                        //Delete Like
+                                        Firebase.deleteObject(objectToDelete, function (error) {
+                                            if (error) {
+                                                console.log(error);
+                                                fx(false);
+                                            } else {
+
+                                                console.log("Object deleted");
+                                                fx(true, false);
+                                            }
+                                        });
                                     }
-                                });
+
+                                }, true);
 
                             } else {
 
                                 //Increase count
-                                if (!post.numComments) {
-                                    post.numComments = 1;
+                                if (!post.numLikes) {
+                                    post.numLikes = 1;
                                 } else {
-                                    post.numComments++;
+                                    post.numLikes++;
                                 }
 
                                 //Update post
@@ -351,19 +376,16 @@ servicesModule
                                         console.log(error);
                                         //fx(false);
                                     } else {
-                                        //fx(true, post);
-
-                                        console.log("about to add comment " + comment.post);
 
                                         //No value is sent as object, since data (user, name, date) will be added by firebase service 
 
                                         //Add Like
-                                        Firebase.deleteObject(postLikesPath.replace("{key}", post.clave), {}, function (key, object, error) {
+                                        Firebase.saveObject(postLikesPath.replace("{key}", post.clave), {}, function (key, object, error) {
                                             if (error) {
                                                 console.log(error);
                                                 fx(false);
                                             } else {
-                                                fx(true, object, key, post);
+                                                fx(true, true, object);
                                             }
                                         });
                                     }

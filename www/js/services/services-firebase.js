@@ -177,8 +177,11 @@ servicesModule
                 // Find all dinosaurs whose height is exactly 25 meters.
                 var ref = firebase.database().ref(objectName);
                 ref.orderByChild(property).equalTo(value).once("value", function (snapshot) {
-                    console.log(snapshot.val());
-                    fx(false, snapshot.val());
+                    dataObject = snapshot.val();
+                    if(dataObject){
+                        dataObject[keyPropertyName] = snapshot.key;
+                    }
+                    fx(false, dataObject);
                 }, fx);
             }
         }

@@ -71,11 +71,11 @@ var servicesModule = angular.module('wall.services', [])
     .factory('Security', function () {
         return {
             getUserName: function () {
-                var value = "mbedoya";
+                var value = localStorage.usuario;
                 return value;
             },
             getName: function () {
-                var value = "Mauricio Bedoya";
+                var value = localStorage.nombre;
                 return value;
             }
         }

@@ -48,15 +48,31 @@
 
 			<!-- Footer -->
 			<div class="item footer">
-				<img src="/img/likeit.png" />
-				<a class="subdued color-hermeco" ng-click="setLike($index)">
-                        Me gusta
-				</a>
+				
+					<img src="/img/likeit.png" ng-if="!checkPostLiked($index)" />
+					<a class="subdued color-hermeco" ng-click="setLike($index)" ng-if="!checkPostLiked($index)" >
+						Me gusta
+					</a>
+				
+					<img src="/img/likeit-colored.png" ng-if="checkPostLiked($index)" />
+					<a class="subdued" style="color:#BA68C8" ng-click="setLike($index)" ng-if="checkPostLiked($index)">
+                    	Me gusta
+					</a>
+				
 				<img src="/img/comments.png" />
 				<a ng-click="toggleComments($index)" class="subdued">Comentarios {{ commentsCount($index) }}</a>
 			</div>
 			<div class="item small-footer" ng-show="post.numLikes && post.numLikes > 0">
-				<a ng-click="toggleComments($index)" class="subdued">A {{post.numLikes}} personas les gusta esta publicación</a>
+				<a ng-click="toggleLikes($index)" class="subdued">A {{post.numLikes}} personas les gusta esta publicación</a>
+			</div>
+
+			<!-- Likes -->
+			<div class="item item-divider header" ng-if="post.showLikes">
+				<div class="list">
+					<div class="item comment" ng-repeat="like in post.likes">
+						{{ like.name }}
+					</div>
+				</div>
 			</div>
 
 			<!-- Comments -->

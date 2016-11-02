@@ -1,4 +1,4 @@
-mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
+mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility, Security) {
 
   $scope.init = function () {
     $scope.newPost = { message: '' };
@@ -10,6 +10,21 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
       if (success) {
         $scope.posts = data;
         $scope.$apply();
+
+        //Es necesario traer los likes, así se puede determinar si me gusta una publicación
+        for (var index = 0; index < $scope.posts.length; index++) {
+
+          Wall.getPostLikes($scope.posts[index], index, function (success, array, postIndex) {
+            $scope.posts[postIndex].likes = array;
+            if (array && array.length > 0) {
+              $scope.posts[postIndex].numLikes = array.length;
+            } else {
+              $scope.posts[postIndex].numLikes = 0;
+            }
+            $scope.$apply();
+          });
+        }
+
       } else {
         alert("Error getting posts");
       }
@@ -115,7 +130,7 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
   $scope.deleteComment = function () {
 
     Wall.deleteComment($scope.posts[$scope.commentInEdition.postIndex], $scope.commentInEdition.object, function (success) {
-      console.log($scope.posts[$scope.commentInEdition.postIndex].comments); 
+      console.log($scope.posts[$scope.commentInEdition.postIndex].comments);
       $scope.posts[$scope.commentInEdition.postIndex].comments.splice($scope.commentInEdition.index, 1);
       $scope.posts[$scope.commentInEdition.postIndex].showComments = true;
       $scope.commentInEdition = null;
@@ -162,8 +177,26 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
       });
 
     }
+  }
 
+  //Check if i have liked a post
+  $scope.checkPostLiked = function (index) {
 
+    //Find my like index
+    var i, indexFound = false;
+
+    if ($scope.posts[index].numLikes && $scope.posts[index].numLikes > 0) {
+      if ($scope.posts[index].likes) {
+        for (i = 0; i < $scope.posts[index].likes.length; i++) {
+          if ($scope.posts[index].likes[i].userName == Security.getUserName()) {
+            indexFound = true;
+            break;
+          }
+        }
+      }
+    }
+
+    return indexFound;
   }
 
   $scope.commentsCount = function (index) {
@@ -176,31 +209,97 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
 
   $scope.setLike = function (index) {
 
-    Wall.LikePost($scope.posts[index], function(success){
+    Wall.LikePost($scope.posts[index], function (success, liked, object) {
 
+      //if liked, then add to array
+      if (liked) {
+
+        console.log("post liked");
+
+        if (!$scope.posts[index].likes) {
+          $scope.posts[index].likes = [];
+        }
+
+        $scope.posts[index].likes.push(object);
+
+      } else {
+
+        //if not then remove
+
+        //Find my like index
+        var i;
+        if ($scope.posts[index].likes) {
+          for (i = 0; i < $scope.posts[index].likes.length; i++) {
+            if ($scope.posts[index].likes[i].userName == Security.getUserName()) {
+              break;
+            }
+          }
+          //Delete my like
+          $scope.posts[index].likes.splice(i, 1);
+        }
+
+      }
+
+      $scope.$apply();
     });
+
+  }
+
+  $scope.hideLikesAndComments = function (indexToIgnore) {
+
+    //Hide all comments sections
+    for (var i = 0; i < $scope.posts.length; i++) {
+      if (indexToIgnore != i) {
+        $scope.posts[i].showComments = false;
+      }
+    }
+
+    //Hide all likes sections
+    for (var i = 0; i < $scope.posts.length; i++) {
+      if (indexToIgnore != i) {
+        $scope.posts[i].showLikes = false;
+      }
+    }
+  }
+
+  $scope.toggleLikes = function (index) {
+
+    $scope.hideLikesAndComments(index);
+
+    //Change selected
+    $scope.posts[index].showLikes = !$scope.posts[index].showLikes;
+
+    //if posts need to be shown get from database 
+    if ($scope.posts[index].showLikes) {
+      $scope.posts[index].showComments = false;
+      Wall.getPostLikes($scope.posts[index], index, function (success, array, postIndex) {
+        $scope.posts[index].likes = array;
+        if (array && array.length > 0) {
+          $scope.posts[index].numLikes = array.length;
+        } else {
+          $scope.posts[index].numLikes = 0;
+        }
+        $scope.$apply();
+      });
+    }
 
   }
 
   $scope.toggleComments = function (index) {
 
-    //Hide all comments sections
-    for (var i = 0; i < $scope.posts.length; i++) {
-      if (index != i) {
-        $scope.posts[i].showComments = false;
-      }
-    }
+    $scope.hideLikesAndComments(index);
 
     //Change selected
     $scope.posts[index].showComments = !$scope.posts[index].showComments;
 
     //if posts need to be shown get from database 
     if ($scope.posts[index].showComments) {
+      $scope.posts[index].showLikes = false;
       Wall.getPostComments($scope.posts[index], function (success, array) {
         $scope.posts[index].comments = array;
-        if(array && array.length > 0){
+        if (array && array.length > 0) {
           $scope.posts[index].numComments = array.length;
-        }else{
+        } else {
           $scope.posts[index].numComments = 0;
         }
         $scope.$apply();
