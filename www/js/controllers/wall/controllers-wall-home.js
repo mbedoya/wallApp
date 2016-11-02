@@ -1,6 +1,8 @@
 mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility, Security) {
 
   $scope.init = function () {
+
+    $scope.readyToGetMorePosts = false;
     $scope.newPost = { message: '' };
     $scope.newComment = { message: '' };
     $scope.posts = [];
@@ -8,8 +10,17 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility, Security)
 
     Wall.getInitialPosts(function (success, data) {
       if (success) {
+
+        console.log(data);
         $scope.posts = data;
         $scope.$apply();
+
+        //Espera de unos segundos para traert nuevos post
+        setTimeout(function(){
+          console.log("nuevos post");
+          $scope.readyToGetMorePosts = true;
+          $scope.$apply();
+        }, 5000);
 
         //Es necesario traer los likes, así se puede determinar si me gusta una publicación
         for (var index = 0; index < $scope.posts.length; index++) {
@@ -117,6 +128,48 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility, Security)
       $scope.postInEdition = null;
       $scope.newPost = { message: '' };
       $scope.$apply();
+    });
+  }
+
+  $scope.getNextPosts = function () {
+
+    var priority = $scope.posts[$scope.posts.length - 1].priority;
+    console.log("about to get new posts starting at " + priority);
+
+    Wall.getNextPosts(priority, function (success, data) {
+
+      if (success) {
+
+        console.log(data);
+        data.splice(0, 1);
+        console.log(data);
+        $scope.posts.push(data[0]);
+        $scope.posts.push(data[1]);
+        $scope.posts.push(data[2]);
+        $scope.$apply();
+        $scope.$broadcast('scroll.infiniteScrollComplete');
+
+        return;
+
+        //Es necesario traer los likes, así se puede determinar si me gusta una publicación
+        for (var index = 0; index < data.length; index++) {
+
+          Wall.getPostLikes(data[index], index, function (success, array, postIndex) {
+            data[postIndex].likes = array;
+            if (array && array.length > 0) {
+              data[postIndex].numLikes = array.length;
+            } else {
+              data[postIndex].numLikes = 0;
+            }
+            $scope.$apply();
+
+          });
+        }
+
+      } else {
+        alert("Error getting posts");
+      }
+
     });
   }
 

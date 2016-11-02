@@ -3,6 +3,7 @@ servicesModule
 
         var timePropertyName = "creadoEl";
         var keyPropertyName = "clave";
+        var priorityPropertyName = "priority";
         var userNamePropertyName = "userName";
         var namePropertyName = "name";
 
@@ -138,13 +139,39 @@ servicesModule
                         var key = childSnapshot.key;
                         var object = childSnapshot.val();
                         object[keyPropertyName] = key;
+                        object[priorityPropertyName] = childSnapshot.getPriority();
 
                         arrayResult.push(object);
                     });
                     console.log(new Date());
                     fx(arrayResult);
                 }, fxError);
-            }, getObjectChildren: function (object, fx, fxError) {
+            },
+            getObjectChildrenByCountStartingAtPriority: function (object, count, priority, fx, fxError) {
+
+                console.log("looking for " + count + " children of " + object + " starting at " + priority);
+                console.log(new Date());
+
+                var recentPostsRef = firebase.database().ref(object).orderByPriority().startAt(priority).limitToFirst(count);
+                //var recentPostsRef = firebase.database().ref(object).startAt(4).limitToFirst(count);
+
+                recentPostsRef.once("value", function (snapshot) {
+                    console.log("found");
+                    console.log(snapshot.val());
+                    var arrayResult = [];
+                    snapshot.forEach(function (childSnapshot) {
+                        var key = childSnapshot.key;
+                        var object = childSnapshot.val();
+                        object[keyPropertyName] = key;
+                        object[priorityPropertyName] = childSnapshot.getPriority();
+
+                        arrayResult.push(object);
+                    });
+                    console.log(new Date());
+                    fx(arrayResult);
+                }, fxError);
+            },
+            getObjectChildren: function (object, fx, fxError) {
                 var recentPostsRef = firebase.database().ref(object);
                 recentPostsRef.once("value", function (snapshot) {
                     var arrayResult = [];

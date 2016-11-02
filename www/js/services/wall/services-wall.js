@@ -78,6 +78,13 @@ servicesModule
                     fx(false);
                 });
             },
+            getNextPosts: function (priority, fx) {
+                Firebase.getObjectChildrenByCountStartingAtPriority(newPosts, numberOfPostInitialLoad, priority, function (array) {
+                    fx(true, array);
+                }, function () {
+                    fx(false);
+                });
+            },
             getOldPosts: function (fx) {
                 Firebase.getObjectChildrenByCount(oldPosts, numberOfPostInitialLoad, function (array) {
                     fx(true, array);
