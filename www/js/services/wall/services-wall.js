@@ -3,10 +3,11 @@ servicesModule
 
         var newPosts = 'posts-new';
         var oldPosts = 'posts-old';
+        var postComments = 'post-comments';
         var updatedProperty = "editadoEl";
         var numberOfPostInitialLoad = 4;
 
-        var postCommentsPath = newPosts + "/{key}/comentario";
+        var postCommentsPath = postComments + "/{key}";
 
         return {
             setup: function () {
@@ -18,13 +19,13 @@ servicesModule
                     //console.log(data);
                     console.log(childrenCount);
 
-                    /*    
-                    if(childrenCount == 1){
-                        Firebase.saveObjectWithoutKey("/", {deleted: true}, function (error) {
+
+                    if (childrenCount == 1) {
+                        Firebase.saveObjectWithoutKey("/", { deleted: true }, function (error) {
 
                         });
                     }
-                    */
+
 
                     if (childrenCount == 0) {
                         Firebase.saveObjectWithoutKey("/" + newPosts, {}, function (error) {
@@ -35,9 +36,7 @@ servicesModule
                                 for (i = 0; i < 50; i++) {
 
                                     var post = {
-                                        userName: "chili" + i,
-                                        name: "Mauricio Bedoya " + i,
-                                        post: "Nice App!",
+                                        post: "Lucius Nice App! " + i,
                                         image: ""
                                     };
                                     Firebase.saveObjectWithPriority("/" + newPosts, post);
@@ -53,14 +52,11 @@ servicesModule
                                 //Setup initial data
                                 for (i = 0; i < 10000; i++) {
                                     var post = {
-                                        userName: "chili" + i,
-                                        name: "Mauricio Bedoya " + i,
-                                        post: "What an App!",
                                         image: ""
                                     };
 
                                     setTimeout(function () {
-                                        post.userName = "Chili " + Math.random();
+                                        post.post = "Chili " + Math.random();
                                         Firebase.saveObjectWithPriority("/" + oldPosts, post);
                                     }, 50);
                                 }
@@ -93,8 +89,6 @@ servicesModule
             },
             getMockPost: function (fx) {
                 var post = {
-                    userName: "mbedoya",
-                    name: "Mauricio Bedoya",
                     post: "Nice App!",
                     image: ""
                 };
@@ -113,6 +107,26 @@ servicesModule
                     }
                 });
             },
+            deletePost: function (post, fx) {
+
+                //Delete Post
+                Firebase.deleteObject(newPosts + "/" + post.clave, function (error) {
+                    if (error) {
+                        console.log(error);
+                        fx(false);
+                    } else {
+                        //Delete Comments
+                        Firebase.deleteObject(postCommentsPath.replace("{key}", post.clave), function (error) {
+                            if (error) {
+                                console.log(error);
+                                fx(false);
+                            } else {
+                                fx(true);
+                            }
+                        });
+                    }
+                });
+            },
             updatePost: function (post, fx) {
 
                 console.log(post);
@@ -120,9 +134,9 @@ servicesModule
                 //Necesita ser eliminada porque Firebase no la acepta, Angular la adiciona
                 var comments = post["comments"];
 
-                    delete post["$$hashKey"];
-                    delete post["showComments"];
-                    delete post["comments"];
+                delete post["$$hashKey"];
+                delete post["showComments"];
+                delete post["comments"];
 
                 post[updatedProperty] = Utility.getCurrentDate();
 
@@ -184,7 +198,7 @@ servicesModule
 
                             console.log("about to add comment " + comment.post);
 
-                            
+
 
                             //Add comment
                             Firebase.saveObject(postCommentsPath.replace("{key}", post.clave), comment, function (key, object, error) {

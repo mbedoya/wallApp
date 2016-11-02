@@ -1,10 +1,28 @@
 servicesModule
-    .factory('Firebase', function ($rootScope, Utility) {
+    .factory('Firebase', function ($rootScope, Utility, Security) {
 
         var timePropertyName = "creadoEl";
         var keyPropertyName = "clave";
+        var userNamePropertyName = "userName";
+        var namePropertyName = "name";
 
         return {
+            deleteObject: function (objectName, fx) {
+
+                if (!objectName.startsWith("/")) {
+                    objectName = "/" + objectName;
+                }
+
+                //Get Ref for new object
+                var objectRef = firebase.database().ref(objectName);
+                var newObjectKey = objectRef.key
+
+                objectRef.remove(function (error) {
+                    if (fx) {
+                        fx(error);
+                    }
+                });
+            },
             saveObject: function (objectName, dataObject, fx) {
 
                 if (!objectName.startsWith("/")) {
@@ -15,15 +33,12 @@ servicesModule
                 var objectRef = firebase.database().ref().child(objectName).push();
                 var newObjectKey = objectRef.key;
 
+                console.log("new object" + objectName + " " + newObjectKey);
+
                 //Add Basic Data to Objects
-                //dataObject["creator"] = {
-                //    name: Security.getUserName(),
-                //    uid: Security.getUserID(),
-                //};
-
-
+                dataObject[userNamePropertyName] = Security.getUserName();
+                dataObject[namePropertyName] = Security.getName(); 
                 dataObject[timePropertyName] = Utility.getCurrentDate();
-                //dataObject[keyPropertyName] = newObjectKey;
 
                 objectRef.set(dataObject, function (error) {
                     if (fx) {
@@ -43,13 +58,9 @@ servicesModule
                 var newObjectKey = objectRef.key;
 
                 //Add Basic Data to Objects
-                //dataObject["creator"] = {
-                //    name: Security.getUserName(),
-                //    uid: Security.getUserID(),
-                //};
-
+                dataObject[userNamePropertyName] = Security.getUserName();
+                dataObject[namePropertyName] = Security.getName(); 
                 dataObject[timePropertyName] = Utility.getCurrentDate();
-                //dataObject[keyPropertyName] = newObjectKey;
 
                 var newObjectKey = objectRef.key;
 
@@ -64,17 +75,9 @@ servicesModule
             saveObjectWithoutKey: function (objectName, dataObject, fx) {
 
                 //Add Basic Data to Objects
-                //dataObject["creator"] = {
-                //    name: Security.getUserName(),
-                //    uid: Security.getUserID(),
-                //};
-
-                if(!dataObject[timePropertyName]){
-                    dataObject[timePropertyName] = Utility.getCurrentDate();
-                }
-                //dataObject["key"] = newObjectKey;
-
-                //console.log(dataObject);
+                dataObject[userNamePropertyName] = Security.getUserName();
+                dataObject[namePropertyName] = Security.getName(); 
+                dataObject[timePropertyName] = Utility.getCurrentDate();
 
                 if (!objectName.startsWith("/")) {
                     objectName = "/" + objectName;

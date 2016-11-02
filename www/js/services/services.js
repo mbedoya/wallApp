@@ -67,4 +67,18 @@ var servicesModule = angular.module('wall.services', [])
                 return dateStr;
             }
         }
-    });
+    })
+    .factory('Security', function () {
+        return {
+            getUserName: function () {
+                var value = "mbedoya";
+                return value;
+            },
+            getName: function () {
+                var value = "Mauricio Bedoya";
+                return value;
+            }
+        }
+    })
+    
+    ;

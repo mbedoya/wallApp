@@ -94,6 +94,15 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
     $scope.newPost = { message: post.post };
   }
 
+  $scope.deletePost = function () {
+    Wall.deletePost($scope.postInEdition.object, function (success) {
+      $scope.posts.splice($scope.postInEdition.index, 1);
+      $scope.postInEdition = null;
+      $scope.newPost = { message: '' };
+      $scope.$apply();
+    });
+  }
+
   $scope.commentPost = function (post, index) {
     Wall.commentPost(post, { post: $scope.newComment.message }, function (success, object, key, postEdited) {
       console.log("comment " + key);
@@ -102,10 +111,10 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
       $scope.posts[index].showComments = true;
       $scope.newComment = { message: '' };
 
-      if(!post.comments){
+      if (!post.comments) {
         post.comments = [];
       }
-      
+
       post.comments.push(object);
 
       $scope.$apply();

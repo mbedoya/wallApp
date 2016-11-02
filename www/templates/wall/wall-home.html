@@ -4,7 +4,7 @@
 		<div class="item">
 
 			<div ng-if="postInEdition">
-				Editing {{ postInEdition.object.clave }}
+				Editing {{ postInEdition.object.clave }} <a ng-click="deletePost()" >Delete</a>
 			</div>
 
 			<textarea placeholder="Enter your text..." rows="3" ng-model="newPost.message">
@@ -66,7 +66,7 @@
 				<div class="list">
 
 					<div class="item comment" ng-repeat="comment in post.comments">
-						Juan Pepito: {{ comment.post }}
+						{{ comment.name }}: {{ comment.post }}
 						<br /> {{ getDateFormatted(comment.creadoEl) }}
 					</div>
 
@@ -89,7 +89,7 @@
 
 		</div>
 
-		<div class="item">
+		<div class="item" ng-if="oldPosts && oldPosts.length > 0">
 			Old Posts ({{numOldPosts}})
 		</div>
 
