@@ -4,7 +4,7 @@
 		<div class="item">
 
 			<div ng-if="postInEdition">
-				Editing {{ postInEdition.object.clave }} <a ng-click="deletePost()" >Delete</a>
+				Editing {{ postInEdition.object.clave }} <a ng-click="deletePost()">Delete</a>
 			</div>
 
 			<textarea placeholder="Enter your text..." rows="3" ng-model="newPost.message">
@@ -49,34 +49,36 @@
 			<!-- Footer -->
 			<div class="item footer">
 				<img src="/img/likeit.png" />
-				<a ng-show="likeNum(keys[$index], $index) > 0" href="#/app/wallLikes/{{keys[$index]}}" class="subdued">
-                        {{likes[$index]}}
-                    </a>
-				<a ng-if="!liked(item.like)" class="subdued" ng-click="like(keys[$index], $index)">Me gusta</a>
-				<a ng-if="liked(item.like)" class="subdued color-hermeco" ng-click="dislike(keys[$index], $index)">
+				<a class="subdued color-hermeco" ng-click="setLike($index)">
                         Me gusta
-                    </a>
+				</a>
 				<img src="/img/comments.png" />
 				<a ng-click="toggleComments($index)" class="subdued">Comentarios {{ commentsCount($index) }}</a>
 			</div>
-			<div class="item small-footer" ng-if="$index==1">
-				<a ng-click="toggleComments($index)" class="subdued">A 25 personas les gusta esta publicación</a>
+			<div class="item small-footer" ng-show="post.numLikes && post.numLikes > 0">
+				<a ng-click="toggleComments($index)" class="subdued">A {{post.numLikes}} personas les gusta esta publicación</a>
 			</div>
 
 			<!-- Comments -->
-			<div class="item item-divider header" ng-if="showComments(post)">
+			<div class="item item-divider header" ng-if="post.showComments">
 				<div class="list">
 
 					<div class="item comment" ng-repeat="comment in post.comments" ng-click="editComment(comment, $index, $parent.$index)">
 						{{ comment.name }}: {{ comment.post }}
-						<br /> {{ getDateFormatted(comment.creadoEl) }} {{post.creadoEl | date : "'a las' h:mma" : '(UTC-05:00) Bogota'}}
+
+						<div ng-show="!comment.editadoEl">
+							{{ getDateFormatted(comment.creadoEl) }} {{comment.creadoEl | date : "'a las' h:mma" : '(UTC-05:00) Bogota'}}
+						</div>
+						<div ng-show="comment.editadoEl">
+							Editado {{ getDateFormatted(comment.editadoEl) }} {{comment.editadoEl | date : "'a las' h:mma" : '(UTC-05:00) Bogota'}}
+						</div>
 					</div>
 
 				</div>
 
 				<!-- Add Comment -->
 				<div ng-if="commentInEdition">
-					Editing {{ commentInEdition.object.clave }} <a ng-click="deleteComment()" >Delete</a>
+					Editing {{ commentInEdition.object.clave }} <a ng-click="deleteComment()">Delete</a>
 				</div>
 				<div class="item-input-inset" ng-class="{ 'has-errors' : publicacion.descripcion.$invalid , 'no-errors' : publicacion.descripcion.$valid}">
 					<label class="item-input-wrapper">

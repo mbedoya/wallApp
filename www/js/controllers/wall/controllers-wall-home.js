@@ -42,6 +42,8 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
     Wall.setup();
   }
 
+  /* Post  */
+
   //Add Post to Database
   $scope.addPost = function () {
 
@@ -103,6 +105,8 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
     });
   }
 
+  /* Comments  */
+
   $scope.editComment = function (comment, index, postIndex) {
     $scope.commentInEdition = { object: comment, index: index, postIndex: postIndex };
     $scope.newComment = { message: comment.post };
@@ -111,7 +115,9 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
   $scope.deleteComment = function () {
 
     Wall.deleteComment($scope.posts[$scope.commentInEdition.postIndex], $scope.commentInEdition.object, function (success) {
+      console.log($scope.posts[$scope.commentInEdition.postIndex].comments); 
       $scope.posts[$scope.commentInEdition.postIndex].comments.splice($scope.commentInEdition.index, 1);
+      $scope.posts[$scope.commentInEdition.postIndex].showComments = true;
       $scope.commentInEdition = null;
       $scope.newComment = { message: '' };
       $scope.$apply();
@@ -168,14 +174,18 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
     }
   }
 
-  $scope.showComments = function(post){
-    return post.showComments;
+  $scope.setLike = function (index) {
+
+    Wall.LikePost($scope.posts[index], function(success){
+
+    });
+
   }
 
   $scope.toggleComments = function (index) {
 
     //Hide all comments sections
-    for (var i = 0; i < $scope.posts[i].length; index++) {
+    for (var i = 0; i < $scope.posts.length; i++) {
       if (index != i) {
         $scope.posts[i].showComments = false;
       }
@@ -198,6 +208,9 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility) {
     }
 
   }
+
+
+  /* General */
 
 
   $scope.getDateFormatted = function (startDate) {

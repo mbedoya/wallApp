@@ -1,13 +1,15 @@
 servicesModule
-    .factory('Wall', function ($rootScope, Firebase, Utility) {
+    .factory('Wall', function ($rootScope, Firebase, Utility, Security) {
 
         var newPosts = 'posts-new';
         var oldPosts = 'posts-old';
         var postComments = 'post-comments';
+        var postLikes = 'post-likes';
         var updatedProperty = "editadoEl";
         var numberOfPostInitialLoad = 4;
 
         var postCommentsPath = postComments + "/{key}";
+        var postLikesPath = postLikes + "/{key}";
 
         return {
             setup: function () {
@@ -133,6 +135,7 @@ servicesModule
 
                 //Necesita ser eliminada porque Firebase no la acepta, Angular la adiciona
                 var comments = post["comments"];
+                var hashKey = post["$$hashKey"];
 
                 delete post["$$hashKey"];
                 delete post["showComments"];
@@ -143,8 +146,10 @@ servicesModule
                 //Update post
                 Firebase.saveObjectWithoutKey(newPosts + "/" + post.clave, post, function (key, object, error) {
 
-                    //set comments back
+
+                    //set properties back
                     post["comments"] = comments;
+                    post["$$hashKey"] = hashKey;
 
                     if (error) {
                         console.log(error);
@@ -163,15 +168,59 @@ servicesModule
             },
             deleteComment: function (post, comment, fx) {
 
-                //Delete Comments
-                Firebase.deleteObject(postCommentsPath.replace("{key}", post.clave) + "/" + comment.clave, function (error) {
-                    if (error) {
-                        console.log(error);
-                        fx(false);
+                //Get Comments count
+                Firebase.getObjectProperty("/" + newPosts + "/" + post.clave + "/numComments", function (object) {
+
+                    post.numComments = object;
+
+                    //Decrease count
+                    if (post.numComments && post.numComments > 0) {
+                        post.numComments--;
                     } else {
-                        fx(true);
+                        post.numComments = 0;
                     }
+
+                    var comments = post["comments"];
+                    var hashKey = post["$$hashKey"];
+
+                    delete post["$$hashKey"];
+                    delete post["showComments"];
+                    delete post["comments"];
+
+                    console.log("about to update comment count" + post.clave);
+
+                    //Update post
+                    Firebase.saveProperty(newPosts + "/" + post.clave + "/numComments", post.numComments, function (error) {
+
+                        //set properties back
+                        post["comments"] = comments;
+                        post["$$hashKey"] = hashKey;
+
+                        if (error) {
+                            console.log(error);
+                            //fx(false);
+                        } else {
+                            //fx(true, post);
+
+                            console.log("about to add comment " + comment.post);
+
+                            //Delete Comments
+                            Firebase.deleteObject(postCommentsPath.replace("{key}", post.clave) + "/" + comment.clave, function (error) {
+                                if (error) {
+                                    console.log(error);
+                                    fx(false);
+                                } else {
+                                    fx(true);
+                                }
+                            });
+                        }
+
+                    }, true);
+
+                }, function (error) {
+                    console.log(error);
                 });
+
             },
             updateComment: function (post, comment, fx) {
 
@@ -205,6 +254,7 @@ servicesModule
                     }
 
                     var comments = post["comments"];
+                    var hashKey = post["$$hashKey"];
 
                     delete post["$$hashKey"];
                     delete post["showComments"];
@@ -213,10 +263,11 @@ servicesModule
                     console.log("about to update comment count" + post.clave);
 
                     //Update post
-                    Firebase.saveObjectWithoutKey(newPosts + "/" + post.clave, post, function (key, object, error) {
+                    Firebase.saveProperty(newPosts + "/" + post.clave + "/numComments", post.numComments, function (error) {
 
-                        //set comments back
+                        //set properties back
                         post["comments"] = comments;
+                        post["$$hashKey"] = hashKey;
 
                         if (error) {
                             console.log(error);
@@ -225,8 +276,6 @@ servicesModule
                             //fx(true, post);
 
                             console.log("about to add comment " + comment.post);
-
-
 
                             //Add comment
                             Firebase.saveObject(postCommentsPath.replace("{key}", post.clave), comment, function (key, object, error) {
@@ -237,6 +286,93 @@ servicesModule
                                     fx(true, object, key, post);
                                 }
                             });
+                        }
+
+                    }, true);
+
+                }, function (error) {
+                    console.log(error);
+                });
+
+
+            },
+            LikePost: function (post, fx) {
+
+                //Get Likes count
+                Firebase.getObjectProperty("/" + newPosts + "/" + post.clave + "/numLikes", function (object) {
+
+                    post.numComments = object;
+
+
+                    //Check if like done already
+                    Firebase.queryObject(postLikesPath.replace("{key}", post.clave), "userName", Security.getUserName(), function (error, object) {
+
+                        if (error) {
+                            console.log(error);
+                        } else {
+
+                            console.log(object);
+
+                            //Like found?
+                            if (object) {
+
+                                //Decrease count
+                                if (post.numLikes && post.numLikes > 0) {
+                                    post.numLikes--;
+                                } else {
+                                    post.numLikes = 0;
+                                }
+
+                                console.log("about to update comment count" + post.clave);
+
+                                //Delete Like
+                                Firebase.deleteObject(postLikesPath.replace("{key}", post.clave) + "/" + object.clave, function (error) {
+                                    if (error) {
+                                        console.log(error);
+                                        fx(false);
+                                    } else {
+                                        fx(true);
+                                    }
+                                });
+
+                            } else {
+
+                                //Increase count
+                                if (!post.numComments) {
+                                    post.numComments = 1;
+                                } else {
+                                    post.numComments++;
+                                }
+
+                                //Update post
+                                Firebase.saveProperty(newPosts + "/" + post.clave + "/numLikes", post.numLikes, function (error) {
+
+                                    if (error) {
+                                        console.log(error);
+                                        //fx(false);
+                                    } else {
+                                        //fx(true, post);
+
+                                        console.log("about to add comment " + comment.post);
+
+                                        //No value is sent as object, since data (user, name, date) will be added by firebase service 
+
+                                        //Add Like
+                                        Firebase.deleteObject(postLikesPath.replace("{key}", post.clave), {}, function (key, object, error) {
+                                            if (error) {
+                                                console.log(error);
+                                                fx(false);
+                                            } else {
+                                                fx(true, object, key, post);
+                                            }
+                                        });
+                                    }
+
+                                }, true);
+
+
+
+                            }
                         }
 
                     });

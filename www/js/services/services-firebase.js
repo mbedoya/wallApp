@@ -37,7 +37,7 @@ servicesModule
 
                 //Add Basic Data to Objects
                 dataObject[userNamePropertyName] = Security.getUserName();
-                dataObject[namePropertyName] = Security.getName(); 
+                dataObject[namePropertyName] = Security.getName();
                 dataObject[timePropertyName] = Utility.getCurrentDate();
 
                 objectRef.set(dataObject, function (error) {
@@ -59,7 +59,7 @@ servicesModule
 
                 //Add Basic Data to Objects
                 dataObject[userNamePropertyName] = Security.getUserName();
-                dataObject[namePropertyName] = Security.getName(); 
+                dataObject[namePropertyName] = Security.getName();
                 dataObject[timePropertyName] = Utility.getCurrentDate();
 
                 var newObjectKey = objectRef.key;
@@ -72,12 +72,15 @@ servicesModule
                 });
             },
             //This will save object as received, no key generation
-            saveObjectWithoutKey: function (objectName, dataObject, fx) {
+            saveObjectWithoutKey: function (objectName, dataObject, fx, keepTime) {
 
                 //Add Basic Data to Objects
                 dataObject[userNamePropertyName] = Security.getUserName();
-                dataObject[namePropertyName] = Security.getName(); 
-                dataObject[timePropertyName] = Utility.getCurrentDate();
+                dataObject[namePropertyName] = Security.getName();
+
+                if (!keepTime) {
+                    dataObject[timePropertyName] = Utility.getCurrentDate();
+                }
 
                 if (!objectName.startsWith("/")) {
                     objectName = "/" + objectName;
@@ -88,17 +91,20 @@ servicesModule
                 //Save to Database
                 firebase.database().ref(objectName).set(dataObject, function (error) {
                     if (fx) {
-                        fx( error);
+                        fx(error);
                     }
                 });
             },
-            saveProperty: function (objectName, dataObject, fx) {
+            saveProperty: function (objectName, value, fx) {
 
-                var updates = {};
-                updates['/' + objectName] = dataObject;
+                if (!objectName.startsWith("/")) {
+                    objectName = "/" + objectName;
+                }
+
+                console.log("saving property " + objectName + " to " + value);
 
                 //Save to Database
-                firebase.database().ref().update(updates, function (error) {
+                firebase.database().ref(objectName).set(value, function (error) {
                     if (fx) {
                         fx(error);
                     }
@@ -116,7 +122,7 @@ servicesModule
                 console.log(object);
 
                 var recentPostsRef = firebase.database().ref(object);
-                recentPostsRef.once("value", function(snapshot){
+                recentPostsRef.once("value", function (snapshot) {
                     fx(snapshot.val());
                 }, fxError);
             },
@@ -138,7 +144,7 @@ servicesModule
                     console.log(new Date());
                     fx(arrayResult);
                 }, fxError);
-            },getObjectChildren: function (object, fx, fxError) {
+            }, getObjectChildren: function (object, fx, fxError) {
                 var recentPostsRef = firebase.database().ref(object);
                 recentPostsRef.once("value", function (snapshot) {
                     var arrayResult = [];
@@ -159,6 +165,21 @@ servicesModule
                     var count = snapshot.numChildren();
                     fx(count);
                 }, fxError);
+            }, 
+            queryObject: function (objectName, property, value, fx) {
+
+                if (!objectName.startsWith("/")) {
+                    objectName = "/" + objectName;
+                }
+
+                console.log("Query object "  + objectName + "." + property + "=" + value);
+
+                // Find all dinosaurs whose height is exactly 25 meters.
+                var ref = firebase.database().ref(objectName);
+                ref.orderByChild(property).equalTo(value).once("value", function (snapshot) {
+                    console.log(snapshot.val());
+                    fx(false, snapshot.val());
+                }, fx);
             }
         }
     });
