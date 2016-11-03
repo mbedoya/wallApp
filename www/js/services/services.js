@@ -1,5 +1,5 @@
 var servicesModule = angular.module('wall.services', [])
-.factory('Utility', function () {
+    .factory('Utility', function () {
 
         this.padStr = function (i) {
             return (i < 10) ? "0" + i : "" + i;
@@ -26,13 +26,13 @@ var servicesModule = angular.module('wall.services', [])
 
                 if (result == 0) {
 
-                    var diferenciaHoras = Math.floor(diferenciaTiempo / (1000 * 3600));   
+                    var diferenciaHoras = Math.floor(diferenciaTiempo / (1000 * 3600));
 
                     //was it yesterday?
-                    if(startDate.getDate() != endDate.getDate()
+                    if (startDate.getDate() != endDate.getDate()
                         && startDate.getMonth() == endDate.getMonth()
-                        && startDate.getFullYear() == endDate.getFullYear()){
-                            return "ayer";
+                        && startDate.getFullYear() == endDate.getFullYear()) {
+                        return "ayer";
                     }
 
                     if (diferenciaHoras <= 12) {
@@ -80,5 +80,5 @@ var servicesModule = angular.module('wall.services', [])
             }
         }
     })
-    
+
     ;

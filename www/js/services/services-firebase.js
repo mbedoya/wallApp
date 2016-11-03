@@ -201,13 +201,20 @@ servicesModule
 
                 console.log("Query object "  + objectName + "." + property + "=" + value);
 
-                // Find all dinosaurs whose height is exactly 25 meters.
+                //Query object
                 var ref = firebase.database().ref(objectName);
                 ref.orderByChild(property).equalTo(value).once("value", function (snapshot) {
-                    dataObject = snapshot.val();
-                    if(dataObject){
-                        dataObject[keyPropertyName] = snapshot.key;
-                    }
+
+                    var dataObject;
+                    snapshot.forEach(function (childSnapshot) {
+
+                        dataObject = childSnapshot.val();
+                        if(dataObject){
+                            dataObject[keyPropertyName] = childSnapshot.key;
+                        }
+                        console.log("child key " + dataObject[keyPropertyName]);
+                    });
+                    
                     fx(false, dataObject);
                 }, fx);
             }

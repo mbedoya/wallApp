@@ -18,7 +18,11 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility, Security)
         //Espera de unos segundos para traert nuevos post
         setTimeout(function () {
           console.log("nuevos post");
-          $scope.readyToGetMorePosts = true;
+          if(data && data.length > 0){
+            console.log("Data");
+            console.log(data);
+            $scope.readyToGetMorePosts = true;
+          }
           $scope.$apply();
         }, 2000);
 
