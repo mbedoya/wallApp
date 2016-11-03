@@ -16,28 +16,36 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility, Security)
         $scope.$apply();
 
         //Espera de unos segundos para traert nuevos post
-        setTimeout(function(){
+        setTimeout(function () {
           console.log("nuevos post");
           $scope.readyToGetMorePosts = true;
           $scope.$apply();
-        }, 5000);
+        }, 2000);
 
         //Es necesario traer los likes, así se puede determinar si me gusta una publicación
         for (var index = 0; index < $scope.posts.length; index++) {
 
-          Wall.getPostLikes($scope.posts[index], index, function (success, array, postIndex) {
-            $scope.posts[postIndex].likes = array;
-            if (array && array.length > 0) {
-              $scope.posts[postIndex].numLikes = array.length;
-            } else {
-              $scope.posts[postIndex].numLikes = 0;
-            }
-            $scope.$apply();
-          });
+          //Hacer la carga progresiva, dar tiempos de respuesta al servidor
+          setTimeout(function (index) {
+            console.log("timeout index " + index);
+
+            Wall.getPostLikes($scope.posts[index], function (success, array, postKey) {
+              $scope.setPostLikes(postKey, array);
+            });
+
+          }, index * 1000, index);
         }
 
       } else {
         alert("Error getting posts");
+      }
+    });
+
+    Wall.getPostsCount(function (success, data) {
+      if (success) {
+        $scope.numPosts = data;
+      } else {
+        //alert("Error getting old posts count");
       }
     });
 
@@ -63,6 +71,21 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility, Security)
   }
 
   $scope.init();
+
+  $scope.setPostLikes = function (postKey, likes) {
+    for (var index = 0; index < $scope.posts.length; index++) {
+      if ($scope.posts[index].clave == postKey) {
+        $scope.posts[index].likes = likes;
+
+        if (likes && likes.length > 0) {
+          $scope.posts[index].numLikes = likes.length;
+        } else {
+          $scope.posts[index].numLikes = 0;
+        }
+        $scope.$apply();
+      }
+    }
+  }
 
   $scope.setup = function () {
     Wall.setup();
@@ -140,30 +163,30 @@ mainModule.controller('WallHomeCtrl', function ($scope, Wall, Utility, Security)
 
       if (success) {
 
-        console.log(data);
-        data.splice(0, 1);
-        console.log(data);
-        $scope.posts.push(data[0]);
-        $scope.posts.push(data[1]);
-        $scope.posts.push(data[2]);
-        $scope.$apply();
-        $scope.$broadcast('scroll.infiniteScrollComplete');
+        for (var index = 0; index < data.length; index++) {
+          $scope.posts.push(data[index]);
+        }
 
-        return;
+        //Si se ha alcanzado el total de posts detener el scroll infinito
+        if($scope.posts.length == $scope.numPosts){
+          $scope.readyToGetMorePosts = false;
+        }
+
+        $scope.$broadcast('scroll.infiniteScrollComplete');
+        $scope.$apply();
 
         //Es necesario traer los likes, así se puede determinar si me gusta una publicación
         for (var index = 0; index < data.length; index++) {
 
-          Wall.getPostLikes(data[index], index, function (success, array, postIndex) {
-            data[postIndex].likes = array;
-            if (array && array.length > 0) {
-              data[postIndex].numLikes = array.length;
-            } else {
-              data[postIndex].numLikes = 0;
-            }
-            $scope.$apply();
+          //Hacer la carga progresiva, dar tiempos de respuesta al servidor
+          setTimeout(function (index) {
+            console.log("timeout next post index " + index);
 
-          });
+            Wall.getPostLikes(data[index], function (success, array, postKey) {
+              $scope.setPostLikes(postKey, array);
+            });
+
+          }, index * 1000, index);
         }
 
       } else {

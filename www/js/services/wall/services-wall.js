@@ -6,7 +6,7 @@ servicesModule
         var postComments = 'post-comments';
         var postLikes = 'post-likes';
         var updatedProperty = "editadoEl";
-        var numberOfPostInitialLoad = 4;
+        var numberOfPostInitialLoad = 6;
 
         var postCommentsPath = postComments + "/{key}";
         var postLikesPath = postLikes + "/{key}";
@@ -78,8 +78,17 @@ servicesModule
                     fx(false);
                 });
             },
+            getPostsCount: function (fx) {
+                Firebase.getObjectChildrenCount(newPosts, function (count) {
+                    fx(true, count);
+                }, function () {
+                    fx(false);
+                });
+            },
             getNextPosts: function (priority, fx) {
-                Firebase.getObjectChildrenByCountStartingAtPriority(newPosts, numberOfPostInitialLoad, priority, function (array) {
+                Firebase.getObjectChildrenByCountStartingAtPriority(newPosts, numberOfPostInitialLoad+1, priority, function (array) {
+                    //El primer registo retornado es la referencia de búsqueda, no se usa
+                    array.splice(0, 1);
                     fx(true, array);
                 }, function () {
                     fx(false);
@@ -177,9 +186,9 @@ servicesModule
                 });
             },
             //El postIndex se requiere para hacer la carga inicial y saber a que post corresponde
-            getPostLikes: function (post, postIndex, fx) {
+            getPostLikes: function (post, fx) {
                 Firebase.getObjectChildren(postLikesPath.replace("{key}", post.clave), function (array) {
-                    fx(true, array, postIndex);
+                    fx(true, array, post.clave);
                 }, function () {
                     fx(false);
                 });

@@ -1,6 +1,9 @@
 <ion-view view-title="Wall">
 	<ion-content>
 
+		<ion-refresher on-refresh="init()">
+		</ion-refresher>
+
 		<div class="item">
 
 			<div ng-if="postInEdition">
